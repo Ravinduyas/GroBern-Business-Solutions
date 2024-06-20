@@ -5,16 +5,16 @@ from docx.shared import Inches
 from docx2pdf import convert
 
 # Define the path to your folder containing images
-folder_path = 'C:/Users/Insight/Downloads/a'
+input_folder = r'C:\Users\Insight\Downloads\New folder (8)'
 
 # Create an output folder for enhanced images
-output_folder = os.path.join(folder_path, 'enhanced')
+output_folder = os.path.join(input_folder, 'enhanced')
 os.makedirs(output_folder, exist_ok=True)
 
 # Enhancement parameters
 brightness_factor = 1.5  # Adjust as needed
-contrast_factor = 1.5    # Adjust as needed
-sharpness_factor = 2.0   # Adjust as needed
+contrast_factor = 2.5    # Adjust as needed
+sharpness_factor = 5.0   # Adjust as needed
 
 # Create a new Word document
 doc = Document()
@@ -29,20 +29,36 @@ for section in sections:
     section.left_margin = Inches(0.5)
     section.right_margin = Inches(0.5)
 
-# Step 1: Rename the files using numbers, keeping their original extensions
-for index, filename in enumerate(os.listdir(folder_path)):
-    if filename.lower().endswith(('png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff')):
-        file_extension = os.path.splitext(filename)[1]  # Extract the file extension
-        new_filename = f'{index + 1:04d}{file_extension}'  # Use the original extension
-        old_file_path = os.path.join(folder_path, filename)
-        new_file_path = os.path.join(folder_path, new_filename)
-        os.rename(old_file_path, new_file_path)
+# Function to rename files in the input folder
+def rename_files(folder):
+    try:
+        # Ensure the folder exists
+        if not os.path.isdir(folder):
+            print(f"The folder {folder} does not exist.")
+            return
+        
+        # Enumerate through files and rename them
+        for i, filename in enumerate(os.listdir(folder)):
+            if filename.lower().endswith(".jpeg"):  # Ensure the file extension is case-insensitive
+                new_name = f"image_{i + 1}.jpeg"  # Create a new naming pattern
+                old_path = os.path.join(folder, filename)
+                new_path = os.path.join(folder, new_name)
+                
+                # Rename the file
+                os.rename(old_path, new_path)
+                print(f"Renamed: {filename} -> {new_name}")
 
-# Step 2: Process each image in the folder
-for filename in os.listdir(folder_path):
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Rename the files in the input folder
+rename_files(input_folder)
+
+# Process each image in the folder
+for filename in sorted(os.listdir(input_folder)):
     if filename.lower().endswith(('png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff')):
         # Open an image file
-        img_path = os.path.join(folder_path, filename)
+        img_path = os.path.join(input_folder, filename)
         with Image.open(img_path) as img:
             # Convert image to RGB mode if not already
             if img.mode != 'RGB':
@@ -68,12 +84,16 @@ for filename in os.listdir(folder_path):
             doc.add_picture(output_path, width=Inches(7.5))  # Adjust width to fit A4 page
             doc.add_page_break()
 
+# Remove the last page break
+if doc.paragraphs[-1].text == '':
+    doc.paragraphs[-1]._element.getparent().remove(doc.paragraphs[-1]._element)
+
 # Save the Word document
-word_output_path = os.path.join(folder_path, 'enhanced_images.docx')
+word_output_path = os.path.join(input_folder, 'enhanced_images.docx')
 doc.save(word_output_path)
 
 # Convert the Word document to PDF
-pdf_output_path = os.path.join(folder_path, 'enhanced_images.pdf')
+pdf_output_path = os.path.join(input_folder, 'enhanced_images.pdf')
 convert(word_output_path, pdf_output_path)
 
 # Open the PDF file
