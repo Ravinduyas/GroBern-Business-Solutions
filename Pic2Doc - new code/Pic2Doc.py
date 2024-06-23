@@ -3,6 +3,8 @@ from PIL import Image, ImageEnhance
 from docx import Document
 from docx.shared import Inches
 from docx2pdf import convert
+import re
+from datetime import datetime
 
 # Define the path to your folder containing images
 input_folder = r'C:\Users\Insight\Downloads\New folder (8)'
@@ -54,35 +56,56 @@ def rename_files(folder):
 # Rename the files in the input folder
 rename_files(input_folder)
 
-# Process each image in the folder
-for filename in sorted(os.listdir(input_folder)):
-    if filename.lower().endswith(('png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff')):
-        # Open an image file
-        img_path = os.path.join(input_folder, filename)
-        with Image.open(img_path) as img:
-            # Convert image to RGB mode if not already
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
-            
-            # Enhance brightness
-            enhancer = ImageEnhance.Brightness(img)
-            img = enhancer.enhance(brightness_factor)
-            
-            # Enhance contrast
-            enhancer = ImageEnhance.Contrast(img)
-            img = enhancer.enhance(contrast_factor)
-            
-            # Enhance sharpness
-            enhancer = ImageEnhance.Sharpness(img)
-            img = enhancer.enhance(sharpness_factor)
-            
-            # Save the enhanced image to the output folder
-            output_path = os.path.join(output_folder, filename)
-            img.save(output_path)
+# Function to parse the timestamp and bracketed number from the filename
+def parse_filename(filename):
+    pattern = r"WhatsApp Image (\d{4}-\d{2}-\d{2} at \d{2}\.\d{2}\.\d{2})(?: \((\d+)\))?\.(?:jpg|jpeg|png|bmp|gif|tiff)"
+    match = re.search(pattern, filename)
+    if match:
+        timestamp_str = match.group(1)
+        timestamp = datetime.strptime(timestamp_str, '%Y-%m-%d at %H.%M.%S')
+        bracket_num = int(match.group(2)) if match.group(2) else 0
+        return timestamp, bracket_num
+    return None, None
 
-            # Add image to Word document
-            doc.add_picture(output_path, width=Inches(7.5))  # Adjust width to fit A4 page
-            doc.add_page_break()
+# Get a list of files with their parsed timestamps and bracketed numbers
+files_with_timestamps = []
+for filename in os.listdir(input_folder):
+    if filename.lower().endswith(('png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff')):
+        timestamp, bracket_num = parse_filename(filename)
+        if timestamp:
+            files_with_timestamps.append((filename, timestamp, bracket_num))
+
+# Sort the files by timestamp descending, then by bracketed number descending
+files_with_timestamps.sort(key=lambda x: (x[1], x[2]), reverse=True)
+
+# Process each image in the sorted list
+for filename, timestamp, bracket_num in files_with_timestamps:
+    # Open an image file
+    img_path = os.path.join(input_folder, filename)
+    with Image.open(img_path) as img:
+        # Convert image to RGB mode if not already
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+        
+        # Enhance brightness
+        enhancer = ImageEnhance.Brightness(img)
+        img = enhancer.enhance(brightness_factor)
+        
+        # Enhance contrast
+        enhancer = ImageEnhance.Contrast(img)
+        img = enhancer.enhance(contrast_factor)
+        
+        # Enhance sharpness
+        enhancer = ImageEnhance.Sharpness(img)
+        img = enhancer.enhance(sharpness_factor)
+        
+        # Save the enhanced image to the output folder
+        output_path = os.path.join(output_folder, filename)
+        img.save(output_path)
+
+        # Add image to Word document
+        doc.add_picture(output_path, width=Inches(7.5))  # Adjust width to fit A4 page
+        doc.add_page_break()
 
 # Remove the last page break
 if doc.paragraphs[-1].text == '':
