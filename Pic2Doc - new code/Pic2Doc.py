@@ -70,12 +70,18 @@ for index, filename in enumerate(image_files, start=1):
         
         # Save the enhanced image to the output folder
         output_path = os.path.join(output_folder, filename)
-        img.save(output_path)
+        try:
+            img.save(output_path)
+        except Exception as e:
+            print(f"Error saving {output_path}: {e}")
 
         # Add image to Word document
-        doc.add_picture(output_path, width=Inches(7.5))  # Adjust width to fit A4 page
-        doc.add_paragraph(f"Image {index}")
-        doc.add_page_break()
+        try:
+            doc.add_picture(output_path, width=Inches(7.5))  # Adjust width to fit A4 page
+            doc.add_paragraph(f"Image {index}")
+            doc.add_page_break()
+        except Exception as e:
+            print(f"Error adding {output_path} to document: {e}")
 
 # Remove the last page break
 if doc.paragraphs[-1].text == '':
@@ -83,11 +89,20 @@ if doc.paragraphs[-1].text == '':
 
 # Save the Word document
 word_output_path = os.path.join(input_folder, 'enhanced_images.docx')
-doc.save(word_output_path)
+try:
+    doc.save(word_output_path)
+except Exception as e:
+    print(f"Error saving Word document: {e}")
 
 # Convert the Word document to PDF
 pdf_output_path = os.path.join(input_folder, 'enhanced_images.pdf')
-convert(word_output_path, pdf_output_path)
+try:
+    convert(word_output_path, pdf_output_path)
+except Exception as e:
+    print(f"Error converting to PDF: {e}")
 
 # Open the PDF file
-os.startfile(pdf_output_path)
+try:
+    os.startfile(pdf_output_path)
+except Exception as e:
+    print(f"Error opening PDF file: {e}")
