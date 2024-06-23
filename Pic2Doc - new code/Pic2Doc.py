@@ -6,14 +6,22 @@ from docx import Document
 from docx.shared import Inches
 from docx2pdf import convert
 import re
+from tkinter import ttk
 
 # Function to select folder path using tkinter file dialog
 def select_folder():
     folder_path = filedialog.askdirectory()
     if folder_path:
+        progress_bar['value'] = 0  # Reset progress bar
         process_images(folder_path)
     else:
         messagebox.showwarning("Warning", "Please select a folder.")
+
+# Function to update progress bar
+def update_progress_bar(current_value, total):
+    progress = int((current_value / total) * 100)
+    progress_bar['value'] = progress
+    root.update_idletasks()  # Refresh the GUI
 
 # Function to process images in the selected folder
 def process_images(input_folder):
@@ -57,6 +65,8 @@ def process_images(input_folder):
         # Get sorted list of images
         image_files = sort_images([f for f in os.listdir(input_folder) if f.lower().endswith(('png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff'))])
 
+        total_images = len(image_files)
+
         # Process each image in the folder
         for index, filename in enumerate(image_files, start=1):
             # Open an image file
@@ -93,6 +103,9 @@ def process_images(input_folder):
                 except Exception as e:
                     print(f"Error adding {output_path} to document: {e}")
 
+            # Update progress bar
+            update_progress_bar(index, total_images)
+
         # Remove the last page break
         if doc.paragraphs[-1].text == '':
             doc.paragraphs[-1]._element.getparent().remove(doc.paragraphs[-1]._element)
@@ -124,7 +137,7 @@ def process_images(input_folder):
 
 # Create main tkinter window
 root = Tk()
-root.title("Image Processing Tool")
+root.title("pic2doc-Grobern Business Solutions")
 
 # Create a label and button in the window
 label = Label(root, text="Select the folder containing images:")
@@ -132,6 +145,10 @@ label.pack(pady=10)
 
 button = Button(root, text="Browse", command=select_folder)
 button.pack(pady=10)
+
+# Create a progress bar widget
+progress_bar = ttk.Progressbar(root, orient='horizontal', length=300, mode='determinate')
+progress_bar.pack(pady=10)
 
 # Run the tkinter main loop
 root.mainloop()
