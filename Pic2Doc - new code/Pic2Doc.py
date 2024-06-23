@@ -33,10 +33,10 @@ for section in sections:
 # Custom sort function to handle the specific filename format
 def sort_images(filenames):
     def extract_timestamp_and_index(filename):
-        match = re.search(r'WhatsApp Image (\d{4}-\d{2}-\d{2} at \d{2}\.\d{2}\.\d{2}) \((\d+)\)\.', filename)
+        match = re.search(r'WhatsApp Image (\d{4}-\d{2}-\d{2} at \d{2}\.\d{2}\.\d{2})(?: \((\d+)\))?', filename)
         if match:
             timestamp_str = match.group(1)
-            index = int(match.group(2))
+            index = int(match.group(2)) if match.group(2) else 0
             timestamp = timestamp_str.replace(' at ', ' ')
             return timestamp, index
         else:
