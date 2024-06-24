@@ -130,7 +130,7 @@ def process_images(input_folder):
         except Exception as e:
             print(f"Error opening PDF file: {e}")
 
-        messagebox.showinfo("Success", "Processing completed successfully.")
+        # messagebox.showinfo("Success", "Processing completed successfully.")
     
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
@@ -147,7 +147,7 @@ button = Button(root, text="Browse", command=select_folder)
 button.pack(pady=10)
 
 # Create a progress bar widget
-progress_bar = ttk.Progressbar(root, orient='horizontal', length=300, mode='determinate')
+progress_bar = ttk.Progressbar(root, orient='horizontal', length=400, mode='determinate')
 progress_bar.pack(pady=10)
 
 # Run the tkinter main loop
